@@ -11,9 +11,9 @@ using Rolbazli.Model.Models;
 
 namespace Rolbazli.API.Controllers
 {
+    [Authorize] //Authorize=> Bu metoda/metotlara erişmeden önce kimlik doğrulama yapılmış mı kontrol et. Bazı metotları bundan muaf tutmak için [AllowAnonymous] attribut'ünü kullanırız. Ör: login metoduna [AllowAnonymous] attribut'ünü koyabiliriz. Eğer bu attribute u koymazsa kullanıcı giriş yapamayacak.
     [Route("api/[controller]")]
     [ApiController]
-
     public class AccountController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
@@ -26,7 +26,7 @@ namespace Rolbazli.API.Controllers
             _roleManager = roleManager;
             _config = config;
         }
-
+        [AllowAnonymous]//Bu attribute kullanıcı giriş yapmazsa bile yeni kayıt oluşturabilsin diye var.
         [HttpPost("register")]
         // POST isteği: api/account/register
         public async Task<ActionResult<string>> Register(RegisterDTO registerDTO)
@@ -71,6 +71,7 @@ namespace Rolbazli.API.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         // api/account/login
         public async Task<ActionResult<AuthResponseDTO>> Login(LoginDTO loginDTO)
@@ -141,7 +142,7 @@ namespace Rolbazli.API.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet("user-detail")]//api/account/user-detail
         public async Task<ActionResult<UserDetailDTO>> GetUserDetail()
         {
@@ -168,7 +169,7 @@ namespace Rolbazli.API.Controllers
                 AccessFailedCount = user.AccessFailedCount
             });
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet("users")]
         public async Task<ActionResult<IEnumerable<UserDetailDTO>>> GetAllUsers()
         {
