@@ -170,7 +170,7 @@ namespace Rolbazli.API.Controllers
             });
         }
         //[Authorize]
-        [HttpGet("users")]
+        [HttpGet("get-users")]
         public async Task<ActionResult<IEnumerable<UserDetailDTO>>> GetAllUsers()
         {
             // 1. Adım: Önce tüm kullanıcıları çek

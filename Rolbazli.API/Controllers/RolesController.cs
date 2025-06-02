@@ -44,6 +44,7 @@ namespace Rolbazli.API.Controllers
             return BadRequest("Role creation failed.");
         }
 
+        [AllowAnonymous]
         [HttpGet("get-roles")]
         public async Task<ActionResult<IEnumerable<RoleResponseDTO>>> GetRoles()
         {
@@ -80,7 +81,7 @@ namespace Rolbazli.API.Controllers
             return BadRequest("Role deletion failed!..");
         }
 
-        [HttpPost("role-assign")]
+        [HttpPost("assign-role")]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDTO assignRoleDTO)
         {
             var user = await _userManager.FindByIdAsync(assignRoleDTO.UserId);
