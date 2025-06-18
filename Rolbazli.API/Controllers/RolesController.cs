@@ -21,21 +21,22 @@ namespace Rolbazli.API.Controllers
             _userManager = userManager;
         }
 
+        //[AllowAnonymous]
         [HttpPost("create-role")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleDTO createRoleDto)
         {
-            if (string.IsNullOrEmpty(createRoleDto.RoleName))
+            if (string.IsNullOrEmpty(createRoleDto.Name))
             {
                 return BadRequest("Role name is required");
             }
 
-            var roleExist = await _roleManager.RoleExistsAsync(createRoleDto.RoleName);
+            var roleExist = await _roleManager.RoleExistsAsync(createRoleDto.Name);
             if (roleExist)
             {
                 return BadRequest("Role already exist");
             }
 
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole(createRoleDto.RoleName));
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole(createRoleDto.Name));
             if (roleResult.Succeeded)
             {
                 return Ok(new { message = "Role Created successfully" });
@@ -62,6 +63,55 @@ namespace Rolbazli.API.Controllers
                 });
             }
             return Ok(roleDtos);
+        }
+
+        // Mevcut bir rolü güncelleme metodu
+        [HttpPut("{id}")] // PUT isteği için rota tanımı (örn: api/roles/{id})
+        //[Authorize(Roles = "Admin")] // Sadece Admin kullanıcısı rol güncelleyebilir. Ama bunu controller bazında kullanmamız daha mantıklı olur. Her defasında bu attributu yazmayalım diye.
+        public async Task<IActionResult> UpdateRole(string id, [FromBody] UpdateRoleDTO updateRoleDto)
+        {
+            // ID boş veya null ise BadRequest dön.
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest("Role ID is required.");
+            }
+            // Rol adı boş veya null ise BadRequest dön
+            if (string.IsNullOrEmpty(updateRoleDto.Name))
+            {
+                return BadRequest("Role name is required.");
+            }
+
+            // Belirtilen ID'ye sahip rolü bul
+            var role = await _roleManager.FindByIdAsync(id);
+            if (role is null)
+            {
+                return NotFound("Role not found."); // Rol bulunamazsa 404 dön
+            }
+
+            // Rol adının değiştirilip değiştirilmediğini kontrol et
+            if (role.Name != updateRoleDto.Name)
+            {
+                // Yeni rol adıyla başka bir rol var mı kontrol et
+                var roleExist = await _roleManager.RoleExistsAsync(updateRoleDto.Name);
+                if (roleExist)
+                {
+                    return BadRequest("Role with this name already exists."); // Aynı isimde rol varsa hata dön
+                }
+
+                // Rol adını güncelle
+                role.Name = updateRoleDto.Name;
+                var result = await _roleManager.UpdateAsync(role); // Rolü güncelle
+                if (result.Succeeded)
+                {
+                    // Başarılı olursa 200 OK dön
+                    return Ok(new { Message = "Role updated successfully." });
+                }
+                // Güncelleme başarısız olursa hataları dön
+                return BadRequest(result.Errors.FirstOrDefault()?.Description ?? "Role update failed.");
+            }
+
+            // Rol adı değişmediyse bile başarılı yanıt dönebiliriz.
+            return Ok(new { Message = "Role name is the same, no update needed." });
         }
 
         [HttpDelete("{id}")]
